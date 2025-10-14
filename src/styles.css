@@ -1,0 +1,49 @@
+body {
+  margin: 0;
+  font-family: Roboto, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial;
+}
+
+/* small helper spacing */
+.root {
+  padding: 16px;
+}
+
+/* Drag handle between columns on md+ screens */
+/* react-split gutters */
+.gutter {
+  background: rgba(0,0,0,0.04);
+  cursor: col-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gutter.gutter-horizontal {
+  width: 10px;
+}
+
+.gutter.gutter-horizontal:hover {
+  background: rgba(0,0,0,0.08);
+}
+
+/* vertical gutter for right panel split */
+.gutter.gutter-vertical {
+  height: 8px;
+  background: rgba(0,0,0,0.04);
+  cursor: row-resize;
+}
+
+.gutter.gutter-vertical:hover {
+  background: rgba(0,0,0,0.1);
+}
+
+/* transitions for non-drag changes */
+.three-col-box {
+  transition: flex-basis 220ms ease;
+}
+
+/* Improve touch target on mobile by making invisible hit area extend */
+.drag-handle {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  touch-action: none; /* we'll handle touchmove */
+}
