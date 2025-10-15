@@ -93,14 +93,8 @@ export default function Header({ onOpenLeftNav, leftAlwaysVisible, setLeftAlways
             </IconButton>
           )}
 
-          {/* small toggle to allow user to show/hide left nav on tablet */}
-          {typeof setLeftAlwaysVisible === 'function' && isTabletOrSmaller && (
-            <Tooltip title={leftAlwaysVisible ? 'Hide left navigation' : 'Show left navigation'}>
-              <IconButton color="inherit" onClick={() => setLeftAlwaysVisible(!leftAlwaysVisible)} sx={{ mr: 1 }}>
-                {leftAlwaysVisible ? <VisibilityOffIcon /> : <VisibilityIcon />}
-              </IconButton>
-            </Tooltip>
-          )}
+          {/* hamburger for small screens - App will pass onOpenLeftNav; visible via sx */}
+          {/* The left nav pin/toggle was moved into the LeftNav to reduce emphasis in the AppBar. */}
 
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             LDS Mock

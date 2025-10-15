@@ -67,6 +67,7 @@ export default function App() {
   const isTabletOrSmaller = useMediaQuery('(max-width:1180px)');
   const [leftDrawerOpen, setLeftDrawerOpen] = React.useState(false);
   const [leftAlwaysVisible, setLeftAlwaysVisible] = React.useState(false);
+  const [pinHintVisible, setPinHintVisible] = React.useState(false);
   const prevThreeRef = React.useRef(sizesForSplit);
   const [twoPaneSizes, setTwoPaneSizes] = React.useState(() => {
     const [l, m, r] = sizesForSplit;
@@ -147,6 +148,23 @@ export default function App() {
       const mPct = Math.round((m / total) * 100);
       const rPct = 100 - mPct;
       setTwoPaneSizes([mPct, rPct]);
+      // If the left nav should be hidden on tablet, persist a three-col
+      // representation with the left pane at 0 so the Split renders it as
+      // collapsed and the Drawer can be used for navigation.
+      try {
+        if (!leftAlwaysVisible) {
+          persistThreeCol([0, mPct, rPct]);
+        }
+      } catch (e) { }
+      // show the pin hint the first time the user goes to tablet size
+      try {
+        const seen = localStorage.getItem('leftNavPinHintSeen');
+        if (!seen) {
+          setPinHintVisible(true);
+          localStorage.setItem('leftNavPinHintSeen', '1');
+          setTimeout(() => setPinHintVisible(false), 6000);
+        }
+      } catch (e) { }
     } else {
       // restore previous three-col sizes if we have them
       if (prevThreeRef.current) {
@@ -392,7 +410,7 @@ export default function App() {
         {/* Drawer for small screens (only used when leftAlwaysVisible is false) */}
         <Drawer anchor="left" open={leftDrawerOpen && !leftAlwaysVisible} onClose={() => setLeftDrawerOpen(false)} ModalProps={{ keepMounted: true }}>
           <Box sx={{ width: 300, p: 0 }} role="presentation">
-            <LeftNav selected={selectedSection} onSelect={(s) => { setSelectedSection(s); setLeftDrawerOpen(false); }} />
+            <LeftNav selected={selectedSection} onSelect={(s) => { setSelectedSection(s); setLeftDrawerOpen(false); }} leftAlwaysVisible={leftAlwaysVisible} setLeftAlwaysVisible={setLeftAlwaysVisible} isTabletOrSmaller={isTabletOrSmaller} showPinHint={pinHintVisible} />
           </Box>
         </Drawer>
 
@@ -402,8 +420,9 @@ export default function App() {
             disappearing when switching responsive modes. */}
         <Split
           sizes={sizes}
-          // when collapsed allow zero min for right pane so it can disappear
-          minSize={collapsed ? [minSizesPx[0], minSizesPx[1], 0] : minSizesPx}
+          // compute min sizes for the Split. When on tablet and the left nav
+          // should be hidden, allow the left pane to be 0 so it can collapse.
+          minSize={(isTabletOrSmaller && !leftAlwaysVisible) ? [0, minSizesPx[1], minSizesPx[2]] : (collapsed ? [minSizesPx[0], minSizesPx[1], 0] : minSizesPx)}
           gutterSize={10}
           gutterAlign="center"
           snapOffset={6}
@@ -414,7 +433,7 @@ export default function App() {
           style={{ display: 'flex', height: '100%' }}
         >
           <Box sx={{ overflow: 'auto' }}>
-            <LeftNav selected={selectedSection} onSelect={setSelectedSection} />
+            <LeftNav selected={selectedSection} onSelect={setSelectedSection} leftAlwaysVisible={leftAlwaysVisible} setLeftAlwaysVisible={setLeftAlwaysVisible} isTabletOrSmaller={isTabletOrSmaller} showPinHint={pinHintVisible} />
           </Box>
 
           <Box sx={{ position: 'relative', overflow: 'visible' }}>

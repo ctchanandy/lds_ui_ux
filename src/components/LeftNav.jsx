@@ -5,6 +5,8 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
+import Tooltip from '@mui/material/Tooltip';
+import IconButton from '@mui/material/IconButton';
 import Collapse from '@mui/material/Collapse';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ExpandLess from '@mui/icons-material/ExpandLess';
@@ -17,8 +19,10 @@ import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import SyncAltIcon from '@mui/icons-material/SyncAlt';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import PublicIcon from '@mui/icons-material/Public';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 
-export default function LeftNav({ selected, onSelect }) {
+export default function LeftNav({ selected, onSelect, leftAlwaysVisible, setLeftAlwaysVisible, isTabletOrSmaller }) {
   // Track open state for the collapsible Curriculum Components only
   const [open, setOpen] = React.useState({ curriculum: true });
 
@@ -28,9 +32,25 @@ export default function LeftNav({ selected, onSelect }) {
 
   return (
     <Box component="nav" aria-label="left navigation" sx={{ bgcolor: 'background.paper', p: 1, borderRadius: 1 }}>
-      <Typography variant="subtitle1" gutterBottom sx={{ pl: 1 }}>
-        Navigation
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 1 }}>
+        <Typography variant="subtitle1" gutterBottom>
+          Navigation
+        </Typography>
+        {/* Pin toggle: visible on tablet to allow the user to pin the left nav inline */}
+        {isTabletOrSmaller && typeof setLeftAlwaysVisible === 'function' && (
+          <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+            <Tooltip title={leftAlwaysVisible ? 'Unpin left navigation' : 'Pin left navigation'}>
+              <IconButton size="small" onClick={() => setLeftAlwaysVisible(!leftAlwaysVisible)} sx={{ ml: 1 }} aria-label="pin left nav">
+                {leftAlwaysVisible ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
+              </IconButton>
+            </Tooltip>
+            {/** showPinHint prop is passed from App; render a pulsing dot */}
+            {typeof showPinHint !== 'undefined' && showPinHint && (
+              <Box sx={{ position: 'absolute', top: -6, right: -6, width: 12, height: 12, borderRadius: '50%', bgcolor: 'warning.main', boxShadow: 3, animation: 'pulse 1200ms infinite' }} />
+            )}
+          </Box>
+        )}
+      </Box>
       <List disablePadding dense>
         {/* Course Information */}
         <ListItem disablePadding>
