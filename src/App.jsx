@@ -18,6 +18,16 @@ import { useTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     mode: 'light'
+  },
+  components: {
+    MuiInputLabel: {
+      defaultProps: {
+        // keep labels persistently shrunk (appear above the input) instead of
+        // using the placeholder-style floating label. This improves scanning
+        // and avoids unexpected label movement for users.
+        shrink: true
+      }
+    }
   }
 });
 

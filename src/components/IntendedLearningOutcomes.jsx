@@ -4,10 +4,6 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableRow from '@mui/material/TableRow';
-import TableCell from '@mui/material/TableCell';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -18,6 +14,14 @@ import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import Tooltip from '@mui/material/Tooltip';
+import Chip from '@mui/material/Chip';
+import InputAdornment from '@mui/material/InputAdornment';
+import SearchIcon from '@mui/icons-material/Search';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 
 const STORAGE_KEY = 'ilo-data';
 
@@ -68,6 +72,49 @@ export default function IntendedLearningOutcomes() {
   const [editIndex, setEditIndex] = React.useState(null);
   const [textValue, setTextValue] = React.useState('');
   const [deleteConfirm, setDeleteConfirm] = React.useState({ open: false, category: null, index: null });
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [bloomFilter, setBloomFilter] = React.useState('All');
+
+  const BLOOM_LEVELS = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
+
+  const getBloomLevel = (text) => {
+    if (!text) return 'Apply';
+    const first = text.trim().split(/\s+/)[0].toLowerCase();
+    // naive mapping based on leading verb
+    if (first === 'apply') return 'Apply';
+    if (first === 'create' || first === 'design' || first === 'construct' || first === 'build') return 'Create';
+    if (first === 'analyze' || first === 'compare' || first === 'contrast') return 'Analyze';
+    if (first === 'evaluate' || first === 'judge') return 'Evaluate';
+    if (first === 'understand' || first === 'explain' || first === 'describe') return 'Understand';
+    return 'Apply';
+  };
+
+  const bloomColor = (level) => {
+    switch (level) {
+      case 'Create': return 'warning';
+      case 'Analyze': return 'success';
+      case 'Evaluate': return 'secondary';
+      case 'Understand': return 'info';
+      case 'Remember': return 'default';
+      case 'Apply':
+      default:
+        return 'primary';
+    }
+  };
+
+  // Return filtered items for a category based on search and bloom filter
+  const getFilteredItems = (category) => {
+    return (data[category] || []).filter((t) => {
+      const matchesSearch = !searchTerm || t.toLowerCase().includes(searchTerm.toLowerCase());
+      const level = getBloomLevel(t);
+      const matchesBloom = bloomFilter === 'All' || bloomFilter === level;
+      return matchesSearch && matchesBloom;
+    });
+  };
+
+  const totalMatches = Object.keys(data).reduce((acc, c) => acc + getFilteredItems(c).length, 0);
+
+  const isFiltered = Boolean((searchTerm && searchTerm.trim().length > 0) || (bloomFilter && bloomFilter !== 'All'));
 
   const openAdd = (category) => {
     setActiveCategory(category);
@@ -114,48 +161,102 @@ export default function IntendedLearningOutcomes() {
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom>Intended Learning Outcomes</Typography>
 
-      {Object.keys(data).map((category) => (
-        <Paper key={category} sx={{ p: 0, mb: 2 }} elevation={1}>
-          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'secondary.light', color: 'secondary.contrastText', px: 2, py: 1 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{category}</Typography>
+      {/* search + filter toolbar */}
+  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2, flexWrap: 'wrap' }}>
+        <TextField
+          size="small"
+          placeholder="Search outcomes"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{ startAdornment: (<InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>) }}
+        />
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <InputLabel>Bloom level</InputLabel>
+          <Select label="Bloom level" value={bloomFilter} onChange={(e) => setBloomFilter(e.target.value)}>
+            <MenuItem value="All">All levels</MenuItem>
+            {BLOOM_LEVELS.map((b) => <MenuItem key={b} value={b}>{b}</MenuItem>)}
+          </Select>
+        </FormControl>
+        <Box sx={{ ml: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="caption" color="text.secondary">{totalMatches} results</Typography>
+          {isFiltered && (
+            <Button size="small" variant="outlined" onClick={() => { setSearchTerm(''); setBloomFilter('All'); }} sx={{ ml: 1 }}>Clear filters</Button>
+          )}
+        </Box>
+      </Box>
+
+      {Object.keys(data).map((category) => {
+        const items = (data[category] || []).filter((t) => {
+          const matchesSearch = !searchTerm || t.toLowerCase().includes(searchTerm.toLowerCase());
+          const level = getBloomLevel(t);
+          const matchesBloom = bloomFilter === 'All' || bloomFilter === level;
+          return matchesSearch && matchesBloom;
+        });
+
+        return (
+        <Paper key={category} sx={{ p: 0, mb: 2, borderRadius: 1, overflow: 'hidden' }} elevation={1}>
+          <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 0.6 }}>
+            <Box sx={{ width: 6, height: 28, bgcolor: 'secondary.main', borderRadius: 1, mr: 1 }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>{category}</Typography>
             <Box sx={{ flex: 1 }} />
             <Button startIcon={<AddIcon />} size="small" onClick={() => openAdd(category)} color="primary" variant="contained">Create</Button>
           </Box>
           <Divider />
 
           <Box sx={{ p: 1 }}>
-            {(data[category] && data[category].length > 0) ? (
-              <Table>
-                <TableBody>
-                  {data[category].map((text, idx) => (
-                    <TableRow key={`${category}-${idx}`} sx={{ alignItems: 'center' }}>
-                      <TableCell sx={{ width: 120 }}>
-                        <Button variant="contained" color="primary" size="small">Apply</Button>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">{text}</Typography>
-                      </TableCell>
-                      <TableCell sx={{ width: 120 }} align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <IconButton size="small" onClick={() => openEdit(category, idx)} aria-label="edit"><EditIcon fontSize="small" /></IconButton>
-                          <IconButton size="small" onClick={() => confirmDelete(category, idx)} aria-label="delete"><DeleteIcon fontSize="small" /></IconButton>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <Box sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="body2" color="text.secondary">What key concepts, theories, or information will learners acquire?</Typography>
-                <Box sx={{ mt: 1 }}>
-                  <Button variant="contained" onClick={() => openAdd(category)}>CREATE</Button>
-                </Box>
+            {(items && items.length > 0) ? (
+              <Box>
+                {items.map((text, idx) => {
+                  const level = getBloomLevel(text);
+                  return (
+                    <Paper key={`${category}-${idx}`} variant="outlined" className="ilo-row" sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1.25, mb: 1, borderRadius: 1, '&:hover .ilo-actions': { opacity: 1 } }}>
+                      <Tooltip title={`${level} — Bloom taxonomy`}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 96 }}>
+                          <Chip label={level} size="small" color={bloomColor(level)} variant="outlined" sx={{ fontSize: '0.75rem', height: 26 }} />
+                        </Box>
+                      </Tooltip>
+
+                      <Box sx={{ flex: 1 }}>
+                        <Tooltip title={text} enterDelay={300}>
+                          <Typography variant="body2" noWrap sx={{ fontSize: '0.95rem' }}>{text}</Typography>
+                        </Tooltip>
+                      </Box>
+
+                      <Stack direction="row" spacing={0.5} className="ilo-actions" sx={{ opacity: 0, transition: 'opacity 160ms ease' }}>
+                        <IconButton size="small" onClick={() => openEdit(category, idx)} aria-label="edit" sx={{ padding: 0.5, color: 'text.secondary' }}><EditIcon fontSize="small" /></IconButton>
+                        <IconButton size="small" onClick={() => confirmDelete(category, idx)} aria-label="delete" sx={{ padding: 0.5, color: 'text.secondary' }}><DeleteIcon fontSize="small" /></IconButton>
+                      </Stack>
+                    </Paper>
+                  );
+                })}
               </Box>
+            ) : (
+              isFiltered ? (
+                <Paper variant="outlined" className="ilo-empty-filtered" sx={{ p: 3, textAlign: 'center', borderRadius: 1 }} role="status" aria-live="polite">
+                  <Typography variant="body1" sx={{ mb: 1, fontWeight: 600 }}>No outcomes match your filters</Typography>
+                  <Typography variant="body2" color="text.secondary">Try clearing filters or search term to see outcomes in this category.</Typography>
+                  <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 1 }}>
+                    <Button size="small" variant="contained" onClick={() => { setSearchTerm(''); setBloomFilter('All'); }}>Clear filters</Button>
+                    <Button size="small" variant="outlined" onClick={() => { setSearchTerm(''); setBloomFilter('All'); }}>Show all</Button>
+                  </Box>
+                  <Box sx={{ mt: 1, display: 'flex', gap: 1, justifyContent: 'center' }}>
+                    {searchTerm && <Chip size="small" label={`Search: "${searchTerm}"`} onDelete={() => setSearchTerm('')} />}
+                    {bloomFilter && bloomFilter !== 'All' && <Chip size="small" label={`Bloom: ${bloomFilter}`} onDelete={() => setBloomFilter('All')} />}
+                  </Box>
+                </Paper>
+              ) : (
+                <Paper variant="outlined" className="ilo-empty" sx={{ borderStyle: 'dashed', p: 4, textAlign: 'center', borderRadius: 1 }}>
+                  <Typography variant="body2" color="text.secondary">What key concepts, theories, or information will learners acquire?</Typography>
+                  <Box sx={{ mt: 2 }}>
+                    <Button variant="contained" onClick={() => openAdd(category)}>CREATE</Button>
+                  </Box>
+                </Paper>
+              )
             )}
           </Box>
         </Paper>
-      ))}
+      );
+    })}
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>{dialogMode === 'add' ? 'Add outcome' : 'Edit outcome'}</DialogTitle>

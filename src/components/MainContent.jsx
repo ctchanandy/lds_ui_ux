@@ -7,17 +7,30 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
+import Autocomplete from '@mui/material/Autocomplete';
+import Chip from '@mui/material/Chip';
 
 const defaultValues = {
   topic: '',
   description: '',
-  keyAreas: '',
+  keyAreas: [],
   gradeLevel: '',
   lessons: '',
   duration: '',
   contributor: '',
   affiliation: ''
 };
+
+const KEY_AREA_OPTIONS = [
+  'Chinese Language Education',
+  'English Language Education',
+  'Mathematics Education',
+  'Science Education',
+  'Technology Education',
+  'Personal, Social and Humanities Education',
+  'Arts Education',
+  'Physical Education'
+];
 
 import IntendedLearningOutcomes from './IntendedLearningOutcomes';
 
@@ -32,6 +45,15 @@ export default function MainContent({ selectedSection }) {
 
   const handleChange = (field) => (e) => setValues((v) => ({ ...v, [field]: e.target.value }));
 
+  const handleKeyAreasChange = (event, newValue) => {
+    setValues((v) => ({ ...v, keyAreas: newValue }));
+  };
+
+  const num = (val) => {
+    const n = Number(val);
+    return Number.isFinite(n) ? n : 0;
+  };
+
   if (selectedSection !== 'Course Information') {
     if (selectedSection === 'Intended Learning Outcomes') return <IntendedLearningOutcomes />;
     return (
@@ -45,13 +67,13 @@ export default function MainContent({ selectedSection }) {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, pb: 10 }}>
       <Typography variant="h5" gutterBottom>Course Information</Typography>
 
       <Paper sx={{ p: 2, mb: 2 }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <TextField label="Topic" value={values.topic} onChange={handleChange('topic')} fullWidth />
+            <TextField required label="Topic" value={values.topic} onChange={handleChange('topic')} fullWidth helperText="Give a short descriptive title for the course." />
           </Grid>
 
           <Grid item xs={12}>
@@ -59,7 +81,21 @@ export default function MainContent({ selectedSection }) {
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <TextField label="Key Learning Area(s)" value={values.keyAreas} onChange={handleChange('keyAreas')} fullWidth placeholder="e.g., Mathematics; Science" />
+            <Autocomplete
+              multiple
+              freeSolo
+              options={KEY_AREA_OPTIONS}
+              value={values.keyAreas}
+              onChange={handleKeyAreasChange}
+              renderTags={(tagValue, getTagProps) =>
+                tagValue.map((option, index) => (
+                  <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+                ))
+              }
+              renderInput={(params) => (
+                <TextField {...params} label="Key Learning Area(s)" placeholder="Type or select areas" helperText="Select or type multiple areas; press Enter to add custom ones." />
+              )}
+            />
           </Grid>
 
           <Grid item xs={12} sm={6}>
@@ -67,28 +103,31 @@ export default function MainContent({ selectedSection }) {
           </Grid>
 
           <Grid item xs={12} sm={4}>
-            <TextField label="Number of Lessons/Sessions" value={values.lessons} onChange={handleChange('lessons')} fullWidth type="number" />
+            <TextField label="Number of Lessons/Sessions" value={values.lessons} onChange={handleChange('lessons')} fullWidth type="number" inputProps={{ min: 0 }} />
           </Grid>
 
           <Grid item xs={12} sm={4}>
-            <TextField label="Duration per Lesson/Session (mins)" value={values.duration} onChange={handleChange('duration')} fullWidth type="number" />
+            <TextField label="Duration per Lesson/Session (mins)" value={values.duration} onChange={handleChange('duration')} fullWidth type="number" inputProps={{ min: 0 }} />
           </Grid>
 
           <Grid item xs={12} sm={4}>
+            <TextField label="Total In-Lesson/Session Time (mins)" value={num(values.lessons) * num(values.duration) || ''} fullWidth InputProps={{ readOnly: true }} />
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
             <TextField label="Contributor Name (optional)" value={values.contributor} onChange={handleChange('contributor')} fullWidth />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item xs={12} sm={6}>
             <TextField label="Contributor Affiliation (optional)" value={values.affiliation} onChange={handleChange('affiliation')} fullWidth />
           </Grid>
 
-          <Grid item xs={12}>
-            <Stack direction="row" spacing={1} justifyContent="flex-end">
-              <Button onClick={() => setValues(defaultValues)} variant="outlined">Reset</Button>
-              <Button variant="contained" onClick={() => { /* stub: save */ alert('Saved (stub)'); }}>Save</Button>
-            </Stack>
-          </Grid>
         </Grid>
+        {/* sticky action bar scoped to the Paper (middle column) */}
+        <Box sx={{ position: 'sticky', bottom: 12, display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2, bgcolor: 'background.paper', py: 1 }}>
+          <Button variant="outlined" onClick={() => setValues(defaultValues)}>Reset</Button>
+          <Button variant="contained" onClick={() => { /* stub: save */ alert('Saved (stub)'); }}>Save</Button>
+        </Box>
       </Paper>
 
     </Box>

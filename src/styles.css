@@ -53,3 +53,21 @@ body {
   50% { transform: scale(1.4); opacity: 0.6; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+/* Intended Learning Outcomes styles */
+.ilo-section { margin-bottom: 16px; }
+.ilo-card { border-radius: 6px; box-shadow: 0 1px 3px rgba(16,24,40,0.06); border: 1px solid rgba(16,24,40,0.04); overflow: hidden; }
+.ilo-header { display:flex; align-items:center; gap:12px; padding:8px 12px; }
+.ilo-accent { width:6px; height:28px; border-radius:2px; background:#ab6fc0; }
+.ilo-title { font-weight:600; color: #322; }
+.ilo-row { padding:6px 12px; display:flex; align-items:center; gap:12px; border-bottom:1px solid rgba(16,24,40,0.04); }
+.ilo-chip { height:26px; font-size:12px; padding:0 8px; border-radius:14px; }
+.ilo-outcome { flex:1; font-size:0.9rem; line-height:1.25; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; }
+@media (min-width:960px) { .ilo-outcome { -webkit-line-clamp:2; line-clamp:2; } }
+@media (max-width:959px) { .ilo-outcome { -webkit-line-clamp:1; line-clamp:1; } }
+.ilo-actions .MuiIconButton-root { padding:4px; color: rgba(0,0,0,0.54); }
+
+/* empty section styling */
+.ilo-empty { background: #f5f6f8; border-color: rgba(16,24,40,0.16) !important; box-shadow: none; transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease; cursor: pointer; }
+.ilo-empty.MuiPaper-root { border-style: dashed !important; border-width: 1.6px !important; }
+.ilo-empty:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(16,24,40,0.06); border-color: rgba(16,24,40,0.22) !important; }
