@@ -55,7 +55,7 @@ export default function MainContent({ selectedSection }) {
   };
 
   if (selectedSection !== 'Course Information') {
-    if (selectedSection === 'Intended Learning Outcomes') return <IntendedLearningOutcomes />;
+    if (selectedSection === 'Intended Learning Outcomes') return <IntendedLearningOutcomes courseKeyAreas={values.keyAreas} />;
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h5">{selectedSection}</Typography>
@@ -84,6 +84,7 @@ export default function MainContent({ selectedSection }) {
             <Autocomplete
               multiple
               freeSolo
+              disableCloseOnSelect
               options={KEY_AREA_OPTIONS}
               value={values.keyAreas}
               onChange={handleKeyAreasChange}
