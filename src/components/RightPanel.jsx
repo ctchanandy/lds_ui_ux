@@ -386,7 +386,7 @@ export default function RightPanel() {
                     {messages.map((m) => (
                       <Box key={m.id} sx={{ display: 'flex', gap: 1, alignItems: 'flex-end', justifyContent: m.who === 'bot' ? 'flex-start' : 'flex-end' }}>
                         {m.who === 'bot' && <Avatar sx={{ width: 28, height: 28 }}>LF</Avatar>}
-                        <Box sx={{ maxWidth: '76%', bgcolor: m.who === 'bot' ? 'grey.100' : 'primary.main', color: m.who === 'bot' ? 'text.primary' : 'primary.contrastText', px: 1.25, py: 0.6, borderRadius: 1.5, boxShadow: 1 }}>
+                        <Box sx={{ maxWidth: '76%', bgcolor: m.who === 'bot' ? 'neutral.main' : 'primary.main', color: m.who === 'bot' ? 'neutral.contrastText' : 'primary.contrastText', px: 1.25, py: 0.6, borderRadius: 1.5, boxShadow: 1 }}>
                           <Typography variant="body2">{m.text}</Typography>
                         </Box>
                         {m.who === 'user' && <Avatar sx={{ width: 28, height: 28 }}>{/* you */}</Avatar>}

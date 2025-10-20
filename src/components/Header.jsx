@@ -12,10 +12,14 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { useTheme } from '@mui/material/styles';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 
-export default function Header({ onOpenLeftNav, leftAlwaysVisible, setLeftAlwaysVisible, isTabletOrSmaller }) {
+export default function Header({ onOpenLeftNav, leftAlwaysVisible, setLeftAlwaysVisible, isTabletOrSmaller, toggleTheme, dark }) {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [disabled, setDisabled] = React.useState(false);
+  const theme = useTheme();
 
   const THREE_DEFAULT = [20, 60, 20];
   const RIGHT_DEFAULT = [50, 50];
@@ -84,7 +88,7 @@ export default function Header({ onOpenLeftNav, leftAlwaysVisible, setLeftAlways
 
   return (
     <>
-      <AppBar position="static">
+      <AppBar position="static" sx={{ bgcolor: theme.palette.header.main, color: theme.palette.header.contrastText }}>
         <Toolbar>
           {/* hamburger for small screens - App will pass onOpenLeftNav; visible via sx */}
           {onOpenLeftNav && isTabletOrSmaller && (
@@ -101,6 +105,11 @@ export default function Header({ onOpenLeftNav, leftAlwaysVisible, setLeftAlways
           </Typography>
           <Button color="inherit" onClick={handleOpen} disabled={disabled}>Reset all panels</Button>
           <Button color="inherit">Login</Button>
+          <Tooltip title={dark ? 'Switch to light theme' : 'Switch to dark theme'}>
+            <IconButton color="inherit" onClick={() => toggleTheme && toggleTheme()} sx={{ ml: 1 }}>
+              {dark ? <Brightness7Icon /> : <Brightness4Icon />}
+            </IconButton>
+          </Tooltip>
         </Toolbar>
       </AppBar>
 

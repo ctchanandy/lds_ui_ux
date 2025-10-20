@@ -33,6 +33,7 @@ const KEY_AREA_OPTIONS = [
 ];
 
 import IntendedLearningOutcomes from './IntendedLearningOutcomes';
+import CurriculumComponents from './CurriculumComponents';
 
 export default function MainContent({ selectedSection }) {
   const [values, setValues] = React.useState(defaultValues);
@@ -56,6 +57,7 @@ export default function MainContent({ selectedSection }) {
 
   if (selectedSection !== 'Course Information') {
     if (selectedSection === 'Intended Learning Outcomes') return <IntendedLearningOutcomes courseKeyAreas={values.keyAreas} />;
+    if (['CC1', 'CC2', 'CC3', 'CC4', 'CC5', 'CC6'].includes(selectedSection)) return <CurriculumComponents selectedSection={selectedSection} courseKeyAreas={values.keyAreas} />;
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h5">{selectedSection}</Typography>

@@ -22,7 +22,10 @@ import PublicIcon from '@mui/icons-material/Public';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 
+import { useTheme } from '@mui/material/styles';
+
 export default function LeftNav({ selected, onSelect, leftAlwaysVisible, setLeftAlwaysVisible, isTabletOrSmaller }) {
+  const theme = useTheme();
   // Track open state for the collapsible Curriculum Components only
   const [open, setOpen] = React.useState({ curriculum: true });
 
@@ -31,7 +34,7 @@ export default function LeftNav({ selected, onSelect, leftAlwaysVisible, setLeft
   };
 
   return (
-    <Box component="nav" aria-label="left navigation" sx={{ bgcolor: 'background.paper', p: 1, borderRadius: 1 }}>
+    <Box component="nav" aria-label="left navigation" sx={{ bgcolor: theme.palette.neutral.main, p: 1, borderRadius: 1 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pl: 1 }}>
         <Typography variant="subtitle1" gutterBottom>
           Navigation
@@ -46,7 +49,7 @@ export default function LeftNav({ selected, onSelect, leftAlwaysVisible, setLeft
             </Tooltip>
             {/** showPinHint prop is passed from App; render a pulsing dot */}
             {typeof showPinHint !== 'undefined' && showPinHint && (
-              <Box sx={{ position: 'absolute', top: -6, right: -6, width: 12, height: 12, borderRadius: '50%', bgcolor: 'warning.main', boxShadow: 3, animation: 'pulse 1200ms infinite' }} />
+              <Box sx={{ position: 'absolute', top: -6, right: -6, width: 12, height: 12, borderRadius: '50%', bgcolor: theme.palette.warning.main, boxShadow: 3, animation: 'pulse 1200ms infinite' }} />
             )}
           </Box>
         )}

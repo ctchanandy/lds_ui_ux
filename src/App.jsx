@@ -1,6 +1,7 @@
 import React from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import lightTheme, { darkTheme } from './theme';
 import Split from 'react-split';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
@@ -15,25 +16,20 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import Drawer from '@mui/material/Drawer';
 import { useTheme } from '@mui/material/styles';
 
-const theme = createTheme({
-  palette: {
-    mode: 'light'
-  },
+// Input labels remain shrunk to avoid label movement
+const inputLabelDefaults = {
   components: {
-    MuiInputLabel: {
-      defaultProps: {
-        // keep labels persistently shrunk (appear above the input) instead of
-        // using the placeholder-style floating label. This improves scanning
-        // and avoids unexpected label movement for users.
-        shrink: true
-      }
-    }
+    MuiInputLabel: { defaultProps: { shrink: true } }
   }
-});
+};
 
 const STORAGE_KEY = 'three-col-sizes';
 
 export default function App() {
+  const [dark, setDark] = React.useState(false);
+  const currentTheme = dark ? darkTheme : lightTheme;
+  const toggleTheme = () => setDark((d) => !d);
+
   // read persisted sizes or default [20,60,20]
   const initial = React.useMemo(() => {
     try {
@@ -72,7 +68,7 @@ export default function App() {
   const [sizes, setSizes] = React.useState(sizesForSplit);
   const lastSizesKey = `${STORAGE_KEY}-last`;
 
-  const theme = useTheme();
+  const muiTheme = useTheme();
   // treat <= 1180px as tablet/smaller (wider breakpoint for iPad Air etc.)
   const isTabletOrSmaller = useMediaQuery('(max-width:1180px)');
   const [leftDrawerOpen, setLeftDrawerOpen] = React.useState(false);
@@ -407,13 +403,15 @@ export default function App() {
   );
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={currentTheme}>
       <CssBaseline />
       <Header
         onOpenLeftNav={() => setLeftDrawerOpen(true)}
         leftAlwaysVisible={leftAlwaysVisible}
         setLeftAlwaysVisible={setLeftAlwaysVisible}
         isTabletOrSmaller={isTabletOrSmaller}
+        toggleTheme={toggleTheme}
+        dark={dark}
       />
 
       <Box id="three-col-container" sx={{ height: 'calc(100vh - 64px)' }}>

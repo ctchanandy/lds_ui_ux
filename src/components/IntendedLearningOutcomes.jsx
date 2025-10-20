@@ -18,6 +18,8 @@ import Tooltip from '@mui/material/Tooltip';
 import Badge from '@mui/material/Badge';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
+import ILORow from './ILORow';
+import { getBloomLevel } from '../utils/iloUtils';
 import Chip from '@mui/material/Chip';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchIcon from '@mui/icons-material/Search';
@@ -52,7 +54,19 @@ export default function IntendedLearningOutcomes({ courseKeyAreas = [] }) {
   const [data, setData] = React.useState(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw) || {};
+          // merge with defaults so categories missing from storage still show
+          const merged = { ...DEFAULT_DATA };
+          Object.keys(parsed).forEach((k) => {
+            merged[k] = Array.isArray(parsed[k]) ? parsed[k] : (parsed[k] ? parsed[k] : []);
+          });
+          return merged;
+        } catch (e) {
+          return DEFAULT_DATA;
+        }
+      }
     } catch (e) { }
     return DEFAULT_DATA;
   });
@@ -80,17 +94,7 @@ export default function IntendedLearningOutcomes({ courseKeyAreas = [] }) {
 
   const BLOOM_LEVELS = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
 
-  const getBloomLevel = (text) => {
-    if (!text) return 'Apply';
-    const first = text.trim().split(/\s+/)[0].toLowerCase();
-    // naive mapping based on leading verb
-    if (first === 'apply') return 'Apply';
-    if (first === 'create' || first === 'design' || first === 'construct' || first === 'build') return 'Create';
-    if (first === 'analyze' || first === 'compare' || first === 'contrast') return 'Analyze';
-    if (first === 'evaluate' || first === 'judge') return 'Evaluate';
-    if (first === 'understand' || first === 'explain' || first === 'describe') return 'Understand';
-    return 'Apply';
-  };
+  // use shared getBloomLevel from utilities for consistent behaviour across pages
 
   const bloomColor = (level) => {
     switch (level) {
@@ -148,7 +152,7 @@ export default function IntendedLearningOutcomes({ courseKeyAreas = [] }) {
   };
 
   // Demo: show 'no assessment' reminder for some rows (every 3rd) so it's visible
-  const demoHasAssessment = (idx) => (idx % 3) !== 0;
+  // assessment mapping is now persisted via ILORow utilities; legacy demo predicate removed
 
 
   const handleSave = () => {
@@ -205,12 +209,15 @@ export default function IntendedLearningOutcomes({ courseKeyAreas = [] }) {
       </Box>
 
       {Object.keys(data).map((category) => {
-        const items = (data[category] || []).filter((t) => {
-          const matchesSearch = !searchTerm || t.toLowerCase().includes(searchTerm.toLowerCase());
-          const level = getBloomLevel(t);
-          const matchesBloom = bloomFilter === 'All' || bloomFilter === level;
-          return matchesSearch && matchesBloom;
-        });
+        // keep original indices so actions and assessment keys remain stable
+        const items = (data[category] || [])
+          .map((t, originalIndex) => ({ text: t, originalIndex }))
+          .filter(({ text }) => {
+            const matchesSearch = !searchTerm || text.toLowerCase().includes(searchTerm.toLowerCase());
+            const level = getBloomLevel(text);
+            const matchesBloom = bloomFilter === 'All' || bloomFilter === level;
+            return matchesSearch && matchesBloom;
+          });
 
         return (
           <Paper key={category} sx={{ p: 0, mb: 2, borderRadius: 1, overflow: 'hidden' }} elevation={1}>
@@ -225,77 +232,19 @@ export default function IntendedLearningOutcomes({ courseKeyAreas = [] }) {
             <Box sx={{ p: 1 }}>
               {(items && items.length > 0) ? (
                 <Box>
-                  {items.map((text, idx) => {
-                    const level = getBloomLevel(text);
-                    return (
-                      <Paper key={`${category}-${idx}`} variant="outlined" className="ilo-row" sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.25, mb: 1, borderRadius: 1, '&:hover .ilo-actions': { opacity: 1 } }}>
-                        <Tooltip title={`${level} — Bloom taxonomy`}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: '0 0 100px' }}>
-                            {/* neutral chip (no color) to avoid conflicting with task-type colors */}
-                            <Chip label={level} size="small" variant="outlined" sx={{ fontSize: '0.75rem', height: 26, maxWidth: 120, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', borderColor: 'divider', color: 'text.primary' }} />
-                          </Box>
-                        </Tooltip>
-
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0, flex: 1 }}>
-                          {/* subtle red dot indicator before text when unassessed */}
-                          {/* reserved slot so presence/absence of the red dot doesn't shift the text */}
-                          <Box sx={{ width: 12, display: 'flex', justifyContent: 'center', alignItems: 'center', flex: '0 0 auto', ml: 0.25, mr: 0.25 }}>
-                            {!demoHasAssessment(idx) ? (
-                              <Tooltip title="Not assessed" placement="top">
-                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'error.main' }} />
-                              </Tooltip>
-                            ) : (
-                              /* invisible placeholder keeps alignment */
-                              <Box sx={{ width: 8, height: 8, borderRadius: '50%', opacity: 0 }} />
-                            )}
-                          </Box>
-
-                          <Box sx={{ minWidth: 0, flex: 1 }}>
-                            <Tooltip title={text} enterDelay={300}>
-                              <Typography variant="body2" noWrap sx={{ fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>{text}</Typography>
-                            </Tooltip>
-
-                            {/* KLA chips row (visual-only) */}
-                            <Box sx={{ mt: 0.5, display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'wrap' }}>
-                              {getMockKlasFor(text).slice(0, 2).map((k) => (
-                                <Chip
-                                  key={k}
-                                  label={k}
-                                  size="small"
-                                  variant="filled"
-                                  sx={{
-                                    fontSize: '0.72rem',
-                                    color: 'text.secondary',
-                                    bgcolor: 'grey.100',
-                                    height: 22,
-                                    px: 0.5,
-                                    borderRadius: 1,
-                                    boxShadow: 'none'
-                                  }}
-                                />
-                              ))}
-                              {getMockKlasFor(text).length > 2 && (
-                                <Chip label={`+${getMockKlasFor(text).length - 2}`} size="small" variant="filled" sx={{ fontSize: '0.72rem', bgcolor: 'grey.100', height: 22 }} />
-                              )}
-                            </Box>
-                          </Box>
-                        </Box>
-
-                        <Stack direction="row" spacing={0.5} className="ilo-actions" sx={{ flex: '0 0 auto', alignItems: 'center' }}>
-                          {/* chatbot quick-check - visible always but muted */}
-                          <IconButton size="small" aria-label="check-ilo" sx={{ color: 'success.dark', bgcolor: (theme) => theme.palette.success.light, borderRadius: 1, p: 0.5 }} title="Check with assistant" onClick={() => {
-                            window.dispatchEvent(new CustomEvent('chat-prefill', { detail: { text: `Check this ILO: "${text}"` } }));
-                            window.dispatchEvent(new CustomEvent('chat-open'));
-                          }}>
-                            <SmartToyIcon fontSize="small" />
-                          </IconButton>
-
-                          <IconButton size="small" onClick={() => openEdit(category, idx)} aria-label="edit" sx={{ padding: 0.5, color: 'text.secondary' }}><EditIcon fontSize="small" /></IconButton>
-                          <IconButton size="small" onClick={() => confirmDelete(category, idx)} aria-label="delete" sx={{ padding: 0.5, color: 'text.secondary' }}><DeleteIcon fontSize="small" /></IconButton>
-                        </Stack>
-                      </Paper>
-                    );
-                  })}
+                  {items.map((item) => (
+                    <ILORow
+                      key={`${category}-${item.originalIndex}`}
+                      text={item.text}
+                      idx={item.originalIndex}
+                      idKey={`${item.text}-${item.originalIndex}`}
+                      level={getBloomLevel(item.text)}
+                      klas={getMockKlasFor(item.text)}
+                      linkTargets={[]}
+                      onEdit={() => openEdit(category, item.originalIndex)}
+                      onDelete={() => confirmDelete(category, item.originalIndex)}
+                    />
+                  ))}
                 </Box>
               ) : (
                 isFiltered ? (
